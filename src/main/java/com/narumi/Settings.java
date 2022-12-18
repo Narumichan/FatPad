@@ -253,7 +253,7 @@ public class Settings extends JPanel
         }
         if (newTheme != 0)
         {
-            owner.getTheme(newTheme+1);
+            owner.getTheme(newTheme);
         }
         owner.dragEnabled = enableDragCheckBox.isSelected();
         owner.setDrag(owner.dragEnabled);
