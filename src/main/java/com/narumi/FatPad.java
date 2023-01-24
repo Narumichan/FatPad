@@ -131,7 +131,12 @@ public class FatPad extends JFrame {
     public void init()
     {
         //setTitle("FatPad");
-        setIconImage(Toolkit.getDefaultToolkit().getImage("./config/fatpad.png"));
+        if (new File("./config/fatpad.png").exists())
+        {
+            setIconImage(Toolkit.getDefaultToolkit().getImage("./config/fatpad.png"));
+        } else {
+            setIconImage(null);
+        }
         setSize(1250, 800);
         //setLocationRelativeTo(null);
         //setBackground(Color.MAGENTA);
