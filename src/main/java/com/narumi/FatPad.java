@@ -7,10 +7,10 @@ package com.narumi;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.intellijthemes.*;
-import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.*;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatAtomOneDarkIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatGitHubIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialOceanicIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMoonlightIJTheme;
 import com.narumi.Tools.DragDropListener;
 import org.apache.commons.io.FilenameUtils;
 
@@ -18,10 +18,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.Files;
@@ -34,12 +31,13 @@ import static javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW;
 public class FatPad extends JFrame {
 
     public static int currentTheme;
-    private final JTextPane textPane1 = new JTextPane();
+    private String textFromFile = "";
+    public final JTextPane textPane1 = new JTextPane();
     private final JScrollPane scrollTextPane = new JScrollPane(textPane1);
 
     private UndoManager undoManager = new UndoManager();
 
-    private boolean saved = false;
+    public boolean saved = false;
 
     public File targetFile = null;
 
@@ -382,7 +380,7 @@ public class FatPad extends JFrame {
 
     }
 
-    public void readFile()
+    /*public void readFile()
     {
         try
         {
@@ -403,7 +401,38 @@ public class FatPad extends JFrame {
         {
             System.out.println(e);
         }
+    }*/
+    public void readFile()
+    {
+        try
+        {
+           //String textFromFile = new FileLoadWorker(this,targetFile.getAbsolutePath()).execute();
+           SwingWorker sw1 = new SwingWorker(){
+
+               @Override
+               protected Object doInBackground() throws Exception {
+                   String line;
+                   BufferedReader br = new BufferedReader(new FileReader(targetFile));
+                   while((line = br.readLine()) != null)
+                   {
+                       textFromFile += line + "\n";
+                   }
+                   br.close();
+                   textPane1.setText(textFromFile.substring(0,textFromFile.length()-1));
+                   textFromFile = "";
+                   return null;
+               }
+           };
+           sw1.execute();
+           saved = true;
+           updateTitle();
+        }
+        catch(Exception e)
+        {
+            System.out.println(e);
+        }
     }
+
 
     public void saveAsFile()
     {
