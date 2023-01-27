@@ -1,7 +1,30 @@
 package com.narumi;
 
 /**
- *      drag n drop
+ *  tab lines
+ *
+ *  line count
+ *
+ *  row + char position
+ *
+ *  word count
+ *  char count
+ *
+ *  better settings menu
+ *
+ *  ctrl c + ctrl v
+ *
+ *  background image
+ *  opacity slider in the info panel
+ *
+ *  better config files (save version, append new data) (json?)
+ *
+ *  error reading file
+ *
+ *  current directory when opening file
+ *  better directory chooser (github)
+ *
+ *
  */
 
 import com.formdev.flatlaf.FlatDarkLaf;
@@ -16,6 +39,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
@@ -34,12 +58,16 @@ public class FatPad extends JFrame {
     private String textFromFile = "";
     public final JTextPane textPane1 = new JTextPane();
     private final JScrollPane scrollTextPane = new JScrollPane(textPane1);
-
+    private final JPanel infoPanel = new JPanel();
     private UndoManager undoManager = new UndoManager();
 
     public boolean saved = false;
 
     public File targetFile = null;
+
+    private int tabStopNumber = 0;
+    public int tabSize = 20;
+    private TabSet tabSet = new TabSet(new TabStop[]{});
 
     public boolean dragEnabled = false;
 
@@ -47,11 +75,12 @@ public class FatPad extends JFrame {
     private int fontSize = 15;
     private int fontSizeMin = 11;
     private int zoomSize = 5;
+
     public Font defaultFont = new Font("Consoles", Font.PLAIN, fontSize);
 
     public Color textColor = new Color(240,240,240);
 
-    private Action undoText = new AbstractAction() {
+    public Action undoText = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             if (undoManager.canUndo())
             {
@@ -62,7 +91,24 @@ public class FatPad extends JFrame {
         }
     };
 
-    private Action redoText = new AbstractAction() {
+
+    public Action tabText = new AbstractAction() {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("tabbed at index " + textPane1.getCaretPosition());
+            try
+            {
+                textPane1.getDocument().insertString(textPane1.getCaretPosition(), "////", null);
+            }
+            catch(Exception ex)
+            {
+                System.out.println(ex);
+            }
+
+            //textPane1.setText(insertTab(textPane1.getCaretPosition()));
+        }
+    };
+
+    public Action redoText = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             if(undoManager.canRedo())//da bude unsaved text samo ako se redo ili undo actually dese a ne kao i ctrl+s da salje uvek unicode char{
             {
@@ -84,6 +130,7 @@ public class FatPad extends JFrame {
         }
     };
     private Settings settingsPanel = null; //initialize at the bottom of init() before any themes take effect
+    private StyleContext sc = null;
 
     public static void main(String[] args) {
         getRandomTheme();
@@ -141,13 +188,13 @@ public class FatPad extends JFrame {
         //setLocationRelativeTo(null);
         //setBackground(Color.MAGENTA);
         setMinimumSize(new Dimension(400, 300));
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout(5,5));
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                closeWindow();
                 settingsPanel.saveOwnersSettings();
+                closeWindow();
             }
         });
 
@@ -156,11 +203,14 @@ public class FatPad extends JFrame {
         textPane1.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
         textPane1.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "Redo");
         textPane1.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "Save");
+        //textPane1.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("TAB"), "TabText");
         textPane1.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "Save As");
         textPane1.getActionMap().put("Undo", undoText);
         textPane1.getActionMap().put("Redo", redoText);
         textPane1.getActionMap().put("Save", save);
         textPane1.getActionMap().put("Save As", saveAs);
+        //textPane1.getActionMap().put("TabText", tabText);
+        textPane1.setFocusTraversalKeysEnabled(false);
         textPane1.addMouseWheelListener(new MouseAdapter() {
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
@@ -189,6 +239,11 @@ public class FatPad extends JFrame {
                     return;
                 saved = false;
                 System.out.println("typing");
+                if(e.getKeyChar() == '\t')
+                {
+                    e.consume();
+                    addTabStop();
+                }
                 updateTitle();
             }
         });
@@ -202,11 +257,83 @@ public class FatPad extends JFrame {
         scrollTextPane.setFocusable(false);
         scrollTextPane.setBorder(new EmptyBorder(0,0,0,0));
 
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.X_AXIS));
+        infoPanel.setPreferredSize(new Dimension(300,30));
+        infoPanel.setMinimumSize(new Dimension(300,30));
+        infoPanel.setMaximumSize(new Dimension(300,30));
+        //infoPanel.setBackground(new Color(255,0,0));
+
+
+
+
+
+        addTabStop(); //add the first one
+
         add(scrollTextPane, BorderLayout.CENTER);
+        add(infoPanel, BorderLayout.SOUTH);
         setJMenuBar(new Menu(this));
         loadSettings();
         settingsPanel = new Settings(this); //after the theme is loaded
         setVisible(true);
+    }
+
+    private void addTabStop() //https://stackoverflow.com/questions/757692/how-do-you-set-the-tab-size-in-a-jeditorpane
+    {
+        tabStopNumber++;
+        TabStop[] newTabStops = new TabStop[tabSet.getTabCount()+1];
+        for(int i = 0; i < tabSet.getTabCount(); ++i)
+        {
+            newTabStops[i] = tabSet.getTab(i);
+        }
+        newTabStops[tabSet.getTabCount()] = new TabStop(tabStopNumber * tabSize);
+        tabSet = new TabSet(newTabStops);
+        applyTabStops();
+    }
+    private void resetTabStops()
+    {
+        TabStop[] newTabStops = new TabStop[tabSet.getTabCount()];
+        for(int i = 0; i < tabSet.getTabCount(); ++i)
+        {
+            newTabStops[i] = new TabStop((i+1) * tabSize);
+        }
+        tabSet = new TabSet(newTabStops);
+        applyTabStops();
+    }
+
+    // Need to keep track of the number of \r characters, because the getText() method counts them,
+    // but getDocument() (which the caret method uses internally) only sees \n
+    // Difference between getText().length and getDocument().getLength() will always be the number of \r characters
+    private void applyTabStops()
+    {
+        sc = StyleContext.getDefaultStyleContext();
+        AttributeSet paraSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabSet);
+
+        ArrayList<Integer> endOfLinePositions = new ArrayList<Integer>();
+        int x = textPane1.getText().length();
+        int carriageCounter = 0;
+        for(int i = 0; i < textPane1.getText().length(); ++i)
+        {
+            char y = textPane1.getText().charAt(i);
+            if(textPane1.getText().charAt(i) == '\r')
+            {
+                carriageCounter++;
+                continue;
+            }
+            if(textPane1.getText().charAt(i) == '\n')
+            {
+                endOfLinePositions.add(i);
+                textPane1.setCaretPosition(i-carriageCounter);
+                textPane1.setParagraphAttributes(paraSet, false);
+            }
+        }
+
+        /*for(int pos : endOfLinePositions)
+        {
+            int xx = textPane1.getDocument().getLength();
+            textPane1.setCaretPosition(pos);
+            textPane1.setParagraphAttributes(paraSet, false);
+        }*/
+
     }
 
     private void closeWindow()
@@ -439,6 +566,7 @@ public class FatPad extends JFrame {
     }
 
 
+
     public void saveAsFile()
     {
         JFileChooser fc = new JFileChooser();
@@ -498,7 +626,7 @@ public class FatPad extends JFrame {
 
     public void updateTitle()
     {
-        System.out.println("updating title");
+        //System.out.println("updating title");
         String newTitle = "";
         if(targetFile == null)
         {
@@ -521,7 +649,7 @@ public class FatPad extends JFrame {
             }
 
         }
-        System.out.println(newTitle);
+        //System.out.println(newTitle);
 
         setTitle(newTitle);
     }
@@ -532,10 +660,10 @@ public class FatPad extends JFrame {
         return JOptionPane.showOptionDialog
                 (
             this,
-            "Continue without saving?",
+            "Save before exiting?",
             "",
             JOptionPane.YES_NO_CANCEL_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
+            JOptionPane.PLAIN_MESSAGE,
             null,
             options,
             null
@@ -583,13 +711,11 @@ public class FatPad extends JFrame {
             System.out.println(e);
         }
     }
-
-    public void setDrag(boolean x)
-    {
-        textPane1.setDragEnabled(x);
+    public void setDrag(boolean drag) {
+        System.out.println("Drag is set to " + drag);
+        textPane1.setDragEnabled(drag);
+        textPane1.setTransferHandler(new TransferHandler("text"));
     }
-
-
     public void loadSettings()
     {
         System.out.println("loading");
@@ -627,5 +753,11 @@ public class FatPad extends JFrame {
         {
             System.out.println(e);
         }
+    }
+
+    public void setTabSize(int value)
+    {
+        tabSize = value;
+        resetTabStops();
     }
 }

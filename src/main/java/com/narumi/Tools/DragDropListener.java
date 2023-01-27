@@ -6,7 +6,9 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.Reader;
 import java.util.List;
 
 public class DragDropListener implements DropTargetListener {
@@ -55,8 +57,8 @@ public class DragDropListener implements DropTargetListener {
 
             try {
 
-                // If the drop items are files
-                if (flavor.isFlavorJavaFileListType()) {
+                // If the drop items are files  
+                if (flavor.isFlavorJavaFileListType()){
 
                     // Get all of the dropped files
                     List files = (List) transferable.getTransferData(flavor);
@@ -75,6 +77,10 @@ public class DragDropListener implements DropTargetListener {
                         });
                     }
 
+                }
+                else if(flavor.isFlavorTextType())
+                {
+                    System.out.println("cccc222");
                 }
 
             } catch (Exception e) {

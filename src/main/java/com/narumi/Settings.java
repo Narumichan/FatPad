@@ -5,6 +5,8 @@ import org.drjekyll.fontchooser.FontDialog;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,6 +24,9 @@ public class Settings extends JPanel
     private JButton textColorButton = new JButton("Change Text Color");
     private JButton textDefaultColorButton = new JButton("Default");
     private JCheckBox enableDragCheckBox = new JCheckBox();
+    private JSlider tabSizeSlider = new JSlider(20,80,40);
+    private JLabel tabSizeLabel = new JLabel("Tab Size: " + tabSizeSlider.getValue());
+    private JPanel tabSizePanel = new JPanel();
     private JLabel textFontLabel = new JLabel();
     private JLabel textColorLabel = new JLabel();
     private JLabel enableDragLabel = new JLabel("Allow text dragging");
@@ -181,9 +186,23 @@ public class Settings extends JPanel
         enableDragPanel.add(enableDragCheckBox);
         enableDragPanel.add(enableDragLabel);
 
+        tabSizePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5,0));
 
+        tabSizeLabel.setFont(settingsFont);
+        tabSizeLabel.setPreferredSize(new Dimension(125,50));
+        tabSizeLabel.setVerticalAlignment(JLabel.CENTER);
 
+        tabSizeSlider.setPreferredSize(new Dimension(250,50));
+        tabSizeSlider.setMajorTickSpacing(20);
+        tabSizeSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                tabSizeLabel.setText("Tab Size: " + tabSizeSlider.getValue());
+            }
+        });
 
+        tabSizePanel.add(tabSizeLabel);
+        tabSizePanel.add(tabSizeSlider);
 
 
 
@@ -213,6 +232,8 @@ public class Settings extends JPanel
                 textFontLabel.setText(owner.defaultFont.getFontName() + " " + owner.defaultFont.getSize() + "px");
                 newColor = new Color(255,255,255);
                 textColorLabel.setBackground(newColor);
+                tabSizeSlider.setValue(owner.tabSize);
+                tabSizeLabel.setText("Tab Size: " + tabSizeSlider.getValue());
                 parent.setVisible(false);
             }
         });
@@ -233,7 +254,7 @@ public class Settings extends JPanel
         add(textColorPanel);
         add(themePanel);
         add(enableDragPanel);
-        add(new JLabel(""));
+        add(tabSizePanel);
         add(new JLabel(""));
         add(new JLabel(""));
         add(new JLabel(""));
@@ -256,7 +277,8 @@ public class Settings extends JPanel
             owner.getTheme(newTheme);
         }
         owner.dragEnabled = enableDragCheckBox.isSelected();
-        owner.setDrag(owner.dragEnabled);
+        owner.setDrag(owner.dragEnabled); // wtf again
+        owner.setTabSize(tabSizeSlider.getValue());
     }
 
     public void saveOwnersSettings()
