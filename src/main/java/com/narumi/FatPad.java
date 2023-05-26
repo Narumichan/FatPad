@@ -70,7 +70,7 @@ public class FatPad extends JFrame {
             createNewTab();
         }
     };
-    private Settings settingsPanel; //initialize at the bottom of init() before any themes take effect
+    private Settings settingsPanel; //initialize after theme changes
 
     public FatPad() {
         init();
@@ -111,7 +111,6 @@ public class FatPad extends JFrame {
         add(infoPanel, BorderLayout.SOUTH);
 
         loadSettings();
-        settingsPanel = new Settings(this, tabbedPane); //after the theme is loaded
         setVisible(true);
     }
 
@@ -156,7 +155,7 @@ public class FatPad extends JFrame {
                 return;
             }
         }
-
+        settingsPanel = new Settings(this, tabbedPane);
         tabbedPane.addTab(settingsPanel.getTitle(), settingsPanel);
         tabbedPane.setSelectedComponent(settingsPanel);
 
