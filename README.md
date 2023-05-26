@@ -6,6 +6,14 @@ FatPad is a more robust and aesthetically pleasing alternative to Notepad.
 
 Download the latest release from [here](https://github.com/Narumichan/FatPad/releases)
 
+## KeyBinds
+
+CTRL + T creates a new tab
+Middle clicking the tab bar also creates a new tab (like in a browser)
+Middle clicking on a tab closes it
+CTRL + W closes the current tab
+CTRL + wheelUp / wheelDown zooms in / out
+
 ## Theme Credit
 
 FlatLaf Light - [JFormDesigner](https://github.com/JFormDesigner/FlatLaf)
