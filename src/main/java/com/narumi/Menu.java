@@ -1,7 +1,6 @@
 package com.narumi;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLaf;
+import com.narumi.Tools.TextPaneTab;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,9 +8,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Menu extends JMenuBar {
-    public FatPad owner = null;
-    public Menu(FatPad newOwner)
-    {
+    public FatPad owner;
+
+    public Menu(FatPad newOwner) {
         owner = newOwner;
         JMenu file = new JMenu("File");
         JMenu edit = new JMenu("Edit");
@@ -28,53 +27,18 @@ public class Menu extends JMenuBar {
         JMenuItem settings = new JMenuItem("Settings");
         JMenuItem randomizeTheme = new JMenuItem("Randomize Theme");
 
-        newFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.createNewTab();
-            }
-        });
+        newFile.addActionListener(e -> owner.createNewTab());
 
-        newWindow.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                EventQueue.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        new FatPad();
-                    }
-                });
-            }
-        });
+        newWindow.addActionListener(e -> EventQueue.invokeLater(FatPad::new));
 
-        open.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.chooseFile();
-            }
-        });
+        open.addActionListener(e -> owner.chooseFile());
 
-        save.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.saveFile();
-            }
-        });
+        save.addActionListener(e -> owner.saveFile());
 
-        saveAs.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.saveFileAs();
-            }
-        });
+        saveAs.addActionListener(e -> owner.saveFileAs());
 
 
-        exit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.dispose();
-            }
-        });
+        exit.addActionListener(e -> owner.dispose());
 
 
         JMenuItem undo = new JMenuItem("Undo");
@@ -83,31 +47,23 @@ public class Menu extends JMenuBar {
         undo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                owner.undoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+                if (!(owner.tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
+                ((TextPaneTab) owner.tabbedPane.getSelectedComponent()).undoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
             }
         });
 
         redo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                owner.redoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+                if (!(owner.tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
+                ((TextPaneTab) owner.tabbedPane.getSelectedComponent()).redoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
             }
         });
 
 
-        settings.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.settings();
-            }
-        });
+        settings.addActionListener(e -> owner.createSettingsTab());
 
-        randomizeTheme.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                owner.getRandomTheme();
-            }
-        });
+        randomizeTheme.addActionListener(e -> owner.getRandomTheme());
 
         file.add(newFile);
         file.add(open);
@@ -129,12 +85,10 @@ public class Menu extends JMenuBar {
         add(edit);
         add(theme);
 
-        for(Component i : getComponents())
-        {
+        for (Component i : getComponents()) {
             i.setFont(owner.defaultFont);
-            for(Component j : ((JMenuItem) i).getComponents())
-            {
-                i.setFont(owner.defaultFont);
+            for (Component j : ((JMenuItem) i).getComponents()) {
+                j.setFont(owner.defaultFont);
             }
         }
 

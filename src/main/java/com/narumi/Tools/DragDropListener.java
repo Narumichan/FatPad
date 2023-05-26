@@ -11,9 +11,9 @@ import java.util.List;
 
 public class DragDropListener implements DropTargetListener {
 
-    FatPad owner;
+    TextPaneTab owner;
 
-    public DragDropListener(FatPad newOwner)
+    public DragDropListener(TextPaneTab newOwner)
     {
         owner = newOwner;
     }
@@ -66,7 +66,7 @@ public class DragDropListener implements DropTargetListener {
                     for (Object file : files)
                     {
                         String path = ((File) file).getPath();
-                        EventQueue.invokeLater(() -> owner.openFile(new File(path)));
+                        EventQueue.invokeLater(() -> owner.getOwner().openFile(new File(path)));
                     }
 
                 }
