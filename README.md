@@ -1,6 +1,6 @@
 # FatPad
 
-FatPad is a more robust and visually pleasing alternative to Notepad.
+FatPad is a more robust and aesthetically pleasing alternative to Notepad.
 
 ## Installation
 
