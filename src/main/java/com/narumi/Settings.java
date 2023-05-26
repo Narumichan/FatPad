@@ -67,7 +67,7 @@ public class Settings extends JScrollPane implements Tab{
     private final JPanel innerButtonsPanel = new JPanel();
     private final JPanel textFontPanel = new JPanel();
 
-    private int newTheme = 0;
+    private int newTheme = 1;
 
     private Font newFont;
 
@@ -274,7 +274,7 @@ public class Settings extends JScrollPane implements Tab{
 
     public void resetSettings() {
         newFont = null;
-        newTheme = 0;
+        newTheme = 1;
         textFontLabel.setText(owner.defaultFont.getFontName() + " " + owner.defaultFont.getSize() + "px");
         newColor = new Color(255, 255, 255);
         textColorLabel.setBackground(newColor);

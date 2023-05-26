@@ -29,6 +29,7 @@ package com.narumi;
 
  */
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.intellijthemes.*;
@@ -84,6 +85,9 @@ public class FatPad extends JFrame {
 
     public void init() {
         setTitle("FatPad");
+        setIconImage(new ImageIcon("./config/fatpad.png").getImage());
+        getRootPane().putClientProperty( FlatClientProperties.TITLE_BAR_SHOW_ICON, false );
+        getRootPane().putClientProperty( FlatClientProperties.TITLE_BAR_SHOW_TITLE, false );
 
         setSize(1250, 800);
         setLocationRelativeTo(null);
@@ -173,45 +177,6 @@ public class FatPad extends JFrame {
     private void closeTab(int tabIndex) {
         ((Tab) tabbedPane.getComponentAt(tabIndex)).closeTab();
     }
-
-    /*public int closeTab(Component selectedTab) {
-        if (tabSavedMap.get(selectedTab)) {
-            removeTab(selectedTab);
-            return 0;
-        }
-        if (!(selectedTab instanceof Settings)) {
-            if (tabToTextPaneMap.get(selectedTab).getText().equals("")) {
-                removeTab(selectedTab);
-                return 0;
-            }
-        }
-
-        String fileName = (selectedTab instanceof Settings) ? "the settings" : (tabToFileMap.get(selectedTab) == null) ? "this file" : tabToFileMap.get(selectedTab).getName();
-        int response = continueWithoutSavingDialog(fileName);
-
-        switch (response) {
-            case JOptionPane.YES_OPTION: {
-                if (selectedTab instanceof Settings) {
-                    ((Settings) selectedTab).applyOwnersSettings();
-                    ((Settings) selectedTab).saveOwnersSettings();
-                }
-                saveFile(selectedTab);
-                removeTab(selectedTab);
-            }
-            break;
-            case JOptionPane.NO_OPTION: {
-                removeTab(selectedTab);
-            }
-            break;
-            case JOptionPane.CANCEL_OPTION: {
-                if (selectedTab instanceof Settings)
-                    ((Settings) selectedTab).resetSettings();
-                return -1;
-            }
-        }
-
-        return 0;
-    }*/
 
     public void getRandomTheme() {
         int newNumber;
@@ -343,6 +308,7 @@ public class FatPad extends JFrame {
             }
         }
     }
+
     public void changeTextColor(Color x) {
         for (Component i : tabbedPane.getComponents()) {
             if (i instanceof TextPaneTab) {
@@ -351,23 +317,11 @@ public class FatPad extends JFrame {
         }
     }
 
-    public void saveSettings(ArrayList<String> linesToSave) {
-        try {
-            Files.createDirectories(Paths.get("./config/"));
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./config/config.cfg"));
-            for (String line : linesToSave) {
-                bw.write(line + "\n");
-            }
-            bw.close();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-
     public void loadSettings() {
         System.out.println("loading");
         try {
             if (!Files.exists(Paths.get("./config/config.cfg"))) {
+                getRandomTheme();
                 return;
             }
 
