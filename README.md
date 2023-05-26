@@ -1,6 +1,6 @@
 # FatPad
 
-FatPad is a simple text editor.
+FatPad is a simple text editor, born out of need for a more visually interesting and robust alternative to Notepad.
 
 ## Installation
 
