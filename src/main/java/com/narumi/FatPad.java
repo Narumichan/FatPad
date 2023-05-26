@@ -76,6 +76,7 @@ public class FatPad extends JFrame {
         init();
         createNewTab();
         //colorize();
+        settingsPanel = new Settings(this, tabbedPane);
     }
 
     public static void main(String[] args) {
