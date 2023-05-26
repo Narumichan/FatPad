@@ -6,14 +6,12 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.Reader;
 import java.util.List;
 
 public class DragDropListener implements DropTargetListener {
 
-    FatPad owner = null;
+    FatPad owner;
 
     public DragDropListener(FatPad newOwner)
     {
@@ -60,21 +58,15 @@ public class DragDropListener implements DropTargetListener {
                 // If the drop items are files  
                 if (flavor.isFlavorJavaFileListType()){
 
-                    // Get all of the dropped files
+                    // Get all the dropped files
                     List files = (List) transferable.getTransferData(flavor);
 
                     // Loop them through
 
-                    for(int i=0;i<files.size();++i)
+                    for (Object file : files)
                     {
-                        int xd = i; //workaround jer i ne moze u inner class
-                        String path = ((File) files.get(i)).getPath();
-                        EventQueue.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                new FatPad(path, xd*200);
-                            }
-                        });
+                        String path = ((File) file).getPath();
+                        EventQueue.invokeLater(() -> owner.openFile(new File(path)));
                     }
 
                 }

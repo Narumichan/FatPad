@@ -17,7 +17,7 @@ public class Menu extends JMenuBar {
         JMenu edit = new JMenu("Edit");
         JMenu theme = new JMenu("Theme");
 
-        setFont(new Font("Ariel", Font.PLAIN,24));
+        setFont(owner.defaultFont.deriveFont(14F));
 
         JMenuItem newFile = new JMenuItem("New File");
         JMenuItem newWindow = new JMenuItem("New Window");
@@ -28,11 +28,10 @@ public class Menu extends JMenuBar {
         JMenuItem settings = new JMenuItem("Settings");
         JMenuItem randomizeTheme = new JMenuItem("Randomize Theme");
 
-
         newFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                owner.clearTextPane();
+                owner.createNewTab();
             }
         });
 
@@ -51,7 +50,7 @@ public class Menu extends JMenuBar {
         open.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                owner.openFile();
+                owner.chooseFile();
             }
         });
 
@@ -65,7 +64,7 @@ public class Menu extends JMenuBar {
         saveAs.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                owner.saveAsFile();
+                owner.saveFileAs();
             }
         });
 
@@ -129,6 +128,15 @@ public class Menu extends JMenuBar {
         add(file);
         add(edit);
         add(theme);
+
+        for(Component i : getComponents())
+        {
+            i.setFont(owner.defaultFont);
+            for(Component j : ((JMenuItem) i).getComponents())
+            {
+                i.setFont(owner.defaultFont);
+            }
+        }
 
     }
 

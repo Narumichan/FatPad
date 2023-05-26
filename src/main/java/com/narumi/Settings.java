@@ -179,7 +179,6 @@ public class Settings extends JPanel
         enableDragLabel.setFont(settingsFont);
 
         enableDragCheckBox.setPreferredSize(new Dimension(30,30));
-        enableDragCheckBox.setSelected(owner.dragEnabled);
         enableDragCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
         enableDragCheckBox.setVerticalAlignment(JCheckBox.CENTER);
 
@@ -232,7 +231,6 @@ public class Settings extends JPanel
                 textFontLabel.setText(owner.defaultFont.getFontName() + " " + owner.defaultFont.getSize() + "px");
                 newColor = new Color(255,255,255);
                 textColorLabel.setBackground(newColor);
-                tabSizeSlider.setValue(owner.tabSize);
                 tabSizeLabel.setText("Tab Size: " + tabSizeSlider.getValue());
                 parent.setVisible(false);
             }
@@ -276,9 +274,10 @@ public class Settings extends JPanel
         {
             owner.getTheme(newTheme);
         }
-        owner.dragEnabled = enableDragCheckBox.isSelected();
-        owner.setDrag(owner.dragEnabled); // wtf again
-        owner.setTabSize(tabSizeSlider.getValue());
+        else
+        {
+            owner.getRandomTheme();
+        }
     }
 
     public void saveOwnersSettings()
@@ -303,7 +302,6 @@ public class Settings extends JPanel
         linesToSave.add("FontSize=" + newFont.getSize());
         linesToSave.add("Color=" + newColor.getRGB());
         linesToSave.add("Theme=" + newTheme);
-        linesToSave.add("DragEnabled=" + owner.dragEnabled);
         owner.saveSettings(linesToSave);
     }
 
