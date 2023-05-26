@@ -45,7 +45,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -79,16 +82,33 @@ public class FatPad extends JFrame {
         settingsPanel = new Settings(this, tabbedPane);
     }
 
+    public FatPad(String[] paths)
+    {
+        init();
+        createNewTab();
+        //colorize();
+        settingsPanel = new Settings(this, tabbedPane);
+
+        for(String i : paths)
+        {
+            openFile(new File(i));
+        }
+
+    }
+
     public static void main(String[] args) {
-        EventQueue.invokeLater(FatPad::new);
+        if (args.length > 0) {
+            EventQueue.invokeLater(() -> new FatPad(args));
+        } else
+            EventQueue.invokeLater(FatPad::new);
 
     }
 
     public void init() {
         setTitle("FatPad");
         setIconImage(new ImageIcon("./config/fatpad.png").getImage());
-        getRootPane().putClientProperty( FlatClientProperties.TITLE_BAR_SHOW_ICON, false );
-        getRootPane().putClientProperty( FlatClientProperties.TITLE_BAR_SHOW_TITLE, false );
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICON, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_TITLE, false);
 
         setSize(1250, 800);
         setLocationRelativeTo(null);
