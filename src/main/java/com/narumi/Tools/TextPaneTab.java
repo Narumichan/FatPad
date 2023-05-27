@@ -148,6 +148,8 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public void setTitle(String title) {
         this.title = title;
+        if(owner.tabbedPane.indexOfComponent(this) != -1)
+            owner.tabbedPane.setTitleAt(owner.tabbedPane.indexOfComponent(this), this.title);
     }
 
     private JTextPane setupTextPane() {

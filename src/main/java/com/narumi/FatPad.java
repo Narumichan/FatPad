@@ -301,11 +301,11 @@ public class FatPad extends JFrame {
             }
 
             TextPaneTab newTab = new TextPaneTab(this);
+            tabbedPane.addTab(newTab.getTitle(), newTab);
             newTab.setSaved(true);
             newTab.setTitle(file.getName());
             newTab.setTargetFile(file);
             newTab.setText(content.toString());
-            tabbedPane.addTab(newTab.getTitle(), newTab);
             tabbedPane.setSelectedComponent(newTab);
         } catch (IOException e) {
             e.printStackTrace();
