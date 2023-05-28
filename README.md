@@ -5,6 +5,13 @@ FatPad is a more robust and aesthetically pleasing alternative to Notepad.
 ## Installation
 
 Download the latest release from [here](https://github.com/Narumichan/FatPad/releases)
+
+If you already have a previous version, you can just download the No-JRE.zip of the latest one and replace the FatPad.exe 
+</br>
+## Usage
+Just run FatPad.exe.
+
+For a better experience, consider pinning FatPad.exe to the Start Menu, Taskbar or setting it as the default program for opening .txt and other filetypes.
 </br>
 ## KeyBinds
 
