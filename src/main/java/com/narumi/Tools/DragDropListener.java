@@ -1,7 +1,5 @@
 package com.narumi.Tools;
 
-import com.narumi.FatPad;
-
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;

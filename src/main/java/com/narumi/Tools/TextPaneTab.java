@@ -8,7 +8,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
@@ -91,7 +90,7 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
         setupScrollPane();
         //setRowHeaderView(lineNumberArea);
-        getVerticalScrollBar().setValue(getVerticalScrollBar().getValue()-1);
+        getVerticalScrollBar().setValue(getVerticalScrollBar().getValue() - 1);
     }
 
     private void updateLineNumbers() {
@@ -148,7 +147,7 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public void setTitle(String title) {
         this.title = title;
-        if(owner.tabbedPane.indexOfComponent(this) != -1)
+        if (owner.tabbedPane.indexOfComponent(this) != -1)
             owner.tabbedPane.setTitleAt(owner.tabbedPane.indexOfComponent(this), this.title);
     }
 
@@ -175,14 +174,12 @@ public class TextPaneTab extends JScrollPane implements Tab {
                 if (e.getWheelRotation() < 0) //Mouse up (???)
                 {
                     changeFontSize(zoomSize);
-                    textPane.setFont(owner.defaultFont.deriveFont((float) fontSize));
-                    lineNumberArea.setFont(owner.defaultFont.deriveFont((float) fontSize));
                 } else //Mouse down
                 {
                     changeFontSize(-zoomSize);
-                    textPane.setFont(owner.defaultFont.deriveFont((float) fontSize));
-                    lineNumberArea.setFont(owner.defaultFont.deriveFont((float) fontSize));
                 }
+                textPane.setFont(owner.defaultFont.deriveFont((float) fontSize));
+                lineNumberArea.setFont(owner.defaultFont.deriveFont((float) fontSize));
             }
         });
         new DropTarget(textPane, new DragDropListener(this));

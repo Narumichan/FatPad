@@ -67,7 +67,7 @@ public class Settings extends JScrollPane implements Tab{
     private final JPanel innerButtonsPanel = new JPanel();
     private final JPanel textFontPanel = new JPanel();
 
-    private int newTheme = 1;
+    private int newTheme = 0;
 
     private Font newFont;
 
@@ -153,6 +153,7 @@ public class Settings extends JScrollPane implements Tab{
 
         themeComboBox.setRenderer(renderer);
         themeComboBox.setFont(settingsFont);
+        themeComboBox.setSelectedIndex(owner.currentTheme - 1);
         renderer.setTooltips(Arrays.asList(themeTooltips));
         themeComboBox.addActionListener(e -> {
             newTheme = themeComboBox.getSelectedIndex() + 1;
@@ -220,8 +221,6 @@ public class Settings extends JScrollPane implements Tab{
         settingsPanel.add(textFontPanel);
         settingsPanel.add(textColorPanel);
         settingsPanel.add(themePanel);
-        //settingsPanel.add(enableDragPanel);
-        //settingsPanel.add(tabSizePanel);
         settingsPanel.add(new JLabel(""));
         settingsPanel.add(new JLabel(""));
         settingsPanel.add(new JLabel(""));
@@ -241,8 +240,8 @@ public class Settings extends JScrollPane implements Tab{
             owner.textColor = newColor;
             owner.changeTextColor(newColor);
         }
-        if (newTheme != 0) {
-            owner.getTheme(newTheme);
+        if (themeComboBox.getSelectedIndex() != 0) {
+            owner.getTheme(themeComboBox.getSelectedIndex() + 1);
         } else {
             owner.getRandomTheme();
         }
@@ -309,7 +308,7 @@ public class Settings extends JScrollPane implements Tab{
             case JOptionPane.YES_OPTION: {
                 applyOwnersSettings();
                 saveFile();
-                removeTab();
+                //removeTab();
             }
             break;
             case JOptionPane.NO_OPTION: {

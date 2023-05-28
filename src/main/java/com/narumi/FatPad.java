@@ -23,7 +23,6 @@ package com.narumi;
 
    error reading file
 
-   current directory when opening file
    better directory chooser (github)
 
 
@@ -206,7 +205,7 @@ public class FatPad extends JFrame {
         while (currentTheme == newNumber);
 
         getTheme(newNumber);
-
+        settingsPanel.saveFile();
     }
 
     public void getTheme(int themeNumber) {
