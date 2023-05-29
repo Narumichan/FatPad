@@ -24,7 +24,7 @@ public class TextPaneTab extends JScrollPane implements Tab {
     private File targetFile;
 
     private final int fontSizeMin = 11;
-    private final int fontSizeMax = 40;
+    private final int fontSizeMax = 70;
     private boolean saved;
     private final JTextPane textPane;
     private final UndoManager undoManager = new UndoManager();
@@ -205,7 +205,7 @@ public class TextPaneTab extends JScrollPane implements Tab {
             fontSize = fontSizeMin;
         if (fontSize > fontSizeMax)
             fontSize = fontSizeMax;
-        System.out.println(fontSize);
+        //System.out.println(fontSize);
     }
 
     @Override

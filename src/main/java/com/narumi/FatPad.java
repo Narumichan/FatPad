@@ -36,6 +36,7 @@ import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatAtomOneDarkIJT
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatGitHubIJTheme;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialOceanicIJTheme;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMoonlightIJTheme;
+import com.narumi.Tools.InfoPanel;
 import com.narumi.Tools.TextPaneTab;
 
 import javax.swing.*;
@@ -55,11 +56,11 @@ import java.util.Random;
 
 public class FatPad extends JFrame {
 
+    public static final int version = 203;
     public final JTabbedPane tabbedPane = new JTabbedPane();
-    private final JPanel infoPanel = new JPanel();
-
     public int currentTheme;
     public Color textColor = new Color(240, 240, 240);
+    public boolean isUsingDefaultTextColor = true;
     private int fontSize = 15;
     public Font defaultFont = new Font("Consoles", Font.PLAIN, fontSize);
     public final Action closeCurrentTab = new AbstractAction() {
@@ -74,22 +75,16 @@ public class FatPad extends JFrame {
     };
     private Settings settingsPanel; //initialize after theme changes
 
+    private InfoPanel infoPanel;
+
     public FatPad() {
         init();
-        createNewTab();
-        //colorize();
-        settingsPanel = new Settings(this, tabbedPane);
     }
 
-    public FatPad(String[] paths)
-    {
+    public FatPad(String[] paths) {
         init();
-        createNewTab();
-        //colorize();
-        settingsPanel = new Settings(this, tabbedPane);
 
-        for(String i : paths)
-        {
+        for (String i : paths) {
             openFile(new File(i));
         }
 
@@ -111,7 +106,6 @@ public class FatPad extends JFrame {
 
         setSize(1250, 800);
         setLocationRelativeTo(null);
-        //setBackground(Color.MAGENTA);
         setMinimumSize(new Dimension(400, 300));
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setLayout(new BorderLayout(5, 5));
@@ -123,14 +117,21 @@ public class FatPad extends JFrame {
             }
         });
 
-        setupInfoPanel();
         setupTabbedPane();
         setJMenuBar(new Menu(this));
+
+        infoPanel = new InfoPanel(this);
 
         add(tabbedPane, BorderLayout.CENTER);
         add(infoPanel, BorderLayout.SOUTH);
 
+
+        settingsPanel = new Settings(this, tabbedPane);
+
         loadSettings();
+        createNewTab();
+
+
         setVisible(true);
     }
 
@@ -150,14 +151,6 @@ public class FatPad extends JFrame {
                 }
             }
         });
-    }
-
-    private void setupInfoPanel() {
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.X_AXIS));
-        infoPanel.setPreferredSize(new Dimension(300, 30));
-        infoPanel.setMinimumSize(new Dimension(300, 30));
-        infoPanel.setMaximumSize(new Dimension(300, 30));
-        //infoPanel.setBackground(new Color(255,0,0));
     }
 
     public void createNewTab() {
@@ -205,6 +198,7 @@ public class FatPad extends JFrame {
         while (currentTheme == newNumber);
 
         getTheme(newNumber);
+        settingsPanel.resetSettings();
         settingsPanel.saveFile();
     }
 
@@ -212,6 +206,10 @@ public class FatPad extends JFrame {
         System.out.println("Theme " + themeNumber);
         currentTheme = themeNumber;
         switch (themeNumber) {
+            case 0: {
+                getRandomTheme();
+            }
+            break;
             case 1: {
                 FlatLightLaf.setup();
                 FlatLightLaf.updateUI();
@@ -268,6 +266,7 @@ public class FatPad extends JFrame {
             }
             break;
         }
+        //System.out.println("isUsing is " + isUsingDefaultTextColor);
     }
 
     public void chooseFile() {
@@ -326,6 +325,7 @@ public class FatPad extends JFrame {
                 ((TextPaneTab) i).setTextFont(x.deriveFont((float) fontSize));
             }
         }
+        infoPanel.changeFont(x);
     }
 
     public void changeTextColor(Color x) {
@@ -334,6 +334,9 @@ public class FatPad extends JFrame {
                 ((TextPaneTab) i).setTextColor(x);
             }
         }
+
+        infoPanel.changeTextColor(x);
+
     }
 
     public void loadSettings() {
@@ -352,20 +355,29 @@ public class FatPad extends JFrame {
             }
             br.close();
 
-            defaultFont = new Font(lines.get(0).split("=")[1],
-                    Integer.parseInt(lines.get(1).split("=")[1]),
-                    Integer.parseInt(lines.get(2).split("=")[1]));
-
-            textColor = new Color(Integer.parseInt(lines.get(3).split("=")[1]));
-            currentTheme = Integer.parseInt(lines.get(4).split("=")[1]);
+            switch (lines.size()) {
+                case 6: {
+                    isUsingDefaultTextColor = Integer.parseInt(lines.get(5).split("=")[1]) == 1;
+                }
+                case 5: {
+                    currentTheme = Integer.parseInt(lines.get(4).split("=")[1]);
+                }
+                case 4: {
+                    textColor = new Color(Integer.parseInt(lines.get(3).split("=")[1]));
+                }
+                case 3: {
+                    defaultFont = new Font(lines.get(0).split("=")[1],
+                            Integer.parseInt(lines.get(1).split("=")[1]),
+                            Integer.parseInt(lines.get(2).split("=")[1]));
+                }
+            }
 
             getTheme(currentTheme);
-            changeTextColor(textColor);
+            changeTextColor(isUsingDefaultTextColor ? settingsPanel.getDefaultTextColor() : textColor);
             changeFont(defaultFont);
 
         } catch (Exception e) {
             System.out.println(e);
         }
     }
-
 }
