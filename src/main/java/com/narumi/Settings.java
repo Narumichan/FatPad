@@ -87,6 +87,7 @@ public class Settings extends JScrollPane implements Tab {
 
         newFont = owner.defaultFont;
         newColor = textFontLabel.getForeground();
+        System.out.println("Color is: " + textFontLabel.getForeground());
 
         textFontPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
 

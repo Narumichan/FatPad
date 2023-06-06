@@ -90,7 +90,6 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
         setupScrollPane();
         //setRowHeaderView(lineNumberArea);
-        getVerticalScrollBar().setValue(getVerticalScrollBar().getValue() - 1);
     }
 
     private void updateLineNumbers() {

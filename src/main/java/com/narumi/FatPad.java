@@ -54,9 +54,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
+
 public class FatPad extends JFrame {
 
-    public static final int version = 203;
+    public static final int version = 210;
     public final JTabbedPane tabbedPane = new JTabbedPane();
     public int currentTheme;
     public Color textColor = new Color(240, 240, 240);
@@ -120,16 +121,18 @@ public class FatPad extends JFrame {
         setupTabbedPane();
         setJMenuBar(new Menu(this));
 
+
+        settingsPanel = new Settings(this, tabbedPane);
         infoPanel = new InfoPanel(this);
 
         add(tabbedPane, BorderLayout.CENTER);
         add(infoPanel, BorderLayout.SOUTH);
 
 
-        settingsPanel = new Settings(this, tabbedPane);
-
         loadSettings();
         createNewTab();
+
+        changeFont(defaultFont);
 
 
         setVisible(true);
@@ -373,6 +376,7 @@ public class FatPad extends JFrame {
             }
 
             getTheme(currentTheme);
+            settingsPanel = new Settings(this, tabbedPane); //so that the default color changes // fix this
             changeTextColor(isUsingDefaultTextColor ? settingsPanel.getDefaultTextColor() : textColor);
             changeFont(defaultFont);
 
