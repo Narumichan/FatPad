@@ -1,12 +1,9 @@
 package com.narumi.Tools;
 
 import com.narumi.FatPad;
-import okhttp3.internal.Util;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class InfoPanel extends JPanel {
     private FatPad owner;
