@@ -6,7 +6,7 @@ FatPad is a more robust and aesthetically pleasing alternative to Notepad.
 
 Download the latest release from [here](https://github.com/Narumichan/FatPad/releases)
 
-If you already have a previous version, you can just download the No-JRE.zip of the latest one and replace the FatPad.exe 
+If you already have a previous version (down to v2.1.0), you can just download the No-JRE.zip of the latest one and replace the FatPad.exe 
 </br>
 ## Usage
 Just run FatPad.exe.
