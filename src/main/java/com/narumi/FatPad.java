@@ -19,7 +19,7 @@ package com.narumi;
    background image
    opacity slider in the info panel
 
-   better config files (save version, append new data) (json?)
+   better config files (save VERSION, append new data) (json?)
 
    error reading file
 
@@ -30,6 +30,7 @@ package com.narumi;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.intellijthemes.*;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatAtomOneDarkIJTheme;
@@ -57,13 +58,13 @@ import java.util.Random;
 
 public class FatPad extends JFrame {
 
-    public static final int version = 210;
+    public static final int VERSION = 210;
     public final JTabbedPane tabbedPane = new JTabbedPane();
-    public int currentTheme;
-    public Color textColor = new Color(240, 240, 240);
-    public boolean isUsingDefaultTextColor = true;
+    private int currentTheme;
+    private Color textColor = new Color(240, 240, 240);
+    private boolean isUsingDefaultTextColor = true;
     private int fontSize = 15;
-    public Font defaultFont = new Font("Consoles", Font.PLAIN, fontSize);
+    private Font defaultFont = new Font("Consoles", Font.PLAIN, fontSize);
     public final Action closeCurrentTab = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
             ((Tab) tabbedPane.getSelectedComponent()).closeTab();
@@ -71,10 +72,11 @@ public class FatPad extends JFrame {
     };
     public final Action createNewTab = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
-            createNewTab();
+            addNewTab();
         }
     };
     private Settings settingsPanel; //initialize after theme changes
+    private final Random random = new Random();
 
     private InfoPanel infoPanel;
 
@@ -122,17 +124,17 @@ public class FatPad extends JFrame {
         setJMenuBar(new Menu(this));
 
 
-        settingsPanel = new Settings(this, tabbedPane);
-        infoPanel = new InfoPanel(this);
+        settingsPanel = new Settings(this);
+        infoPanel = new InfoPanel();
 
         add(tabbedPane, BorderLayout.CENTER);
         add(infoPanel, BorderLayout.SOUTH);
 
 
         loadSettings();
-        createNewTab();
+        addNewTab();
 
-        changeFont(defaultFont);
+        changeFont(getDefaultFont());
 
 
         setVisible(true);
@@ -145,7 +147,7 @@ public class FatPad extends JFrame {
                 if (e.getButton() == MouseEvent.BUTTON2) {
                     int tabIndex = tabbedPane.indexAtLocation(e.getX(), e.getY());
                     if (tabIndex == -1) {
-                        createNewTab();
+                        addNewTab();
                     } else {
                         closeTab(tabIndex);
                     }
@@ -156,7 +158,7 @@ public class FatPad extends JFrame {
         });
     }
 
-    public void createNewTab() {
+    public void addNewTab() {
         TextPaneTab newTab = new TextPaneTab(this);
         newTab.setSaved(false);
 
@@ -171,7 +173,7 @@ public class FatPad extends JFrame {
                 return;
             }
         }
-        settingsPanel = new Settings(this, tabbedPane);
+        settingsPanel = new Settings(this);
         tabbedPane.addTab(settingsPanel.getTitle(), settingsPanel);
         tabbedPane.setSelectedComponent(settingsPanel);
 
@@ -196,7 +198,7 @@ public class FatPad extends JFrame {
     public void getRandomTheme() {
         int newNumber;
         do {
-            newNumber = new Random().nextInt(Settings.numberOfThemes) + 1;
+            newNumber = random.nextInt(Settings.NUMBEROFTHEMES) + 1;
         }
         while (currentTheme == newNumber);
 
@@ -215,61 +217,60 @@ public class FatPad extends JFrame {
             break;
             case 1: {
                 FlatLightLaf.setup();
-                FlatLightLaf.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 2: {
                 FlatSolarizedLightIJTheme.setup();
-                FlatSolarizedLightIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 3: {
                 FlatGitHubIJTheme.setup();
-                FlatGitHubIJTheme.updateUI();
-            }
-            break;
-            case 4: {
-                FlatDarkLaf.setup();
-                FlatDarkLaf.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 5: {
                 FlatArcDarkIJTheme.setup();
-                FlatArcDarkIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 6: {
                 FlatCarbonIJTheme.setup();
-                FlatCarbonIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 7: {
                 FlatMoonlightIJTheme.setup();
-                FlatMoonlightIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 8: {
                 FlatMaterialOceanicIJTheme.setup();
-                FlatMaterialOceanicIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 9: {
                 FlatAtomOneDarkIJTheme.setup();
-                FlatAtomOneDarkIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 10: {
                 FlatSolarizedDarkIJTheme.setup();
-                FlatSolarizedDarkIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
             case 11: {
                 FlatGradiantoDarkFuchsiaIJTheme.setup();
-                FlatGradiantoDarkFuchsiaIJTheme.updateUI();
+                FlatLaf.updateUI();
             }
             break;
+            case 4:
+            default: {
+                FlatDarkLaf.setup();
+                FlatLaf.updateUI();
+            }
         }
-        //System.out.println("isUsing is " + isUsingDefaultTextColor);
     }
 
     public void chooseFile() {
@@ -283,22 +284,15 @@ public class FatPad extends JFrame {
     }
 
     public void openFile(File file) {
-        try {
-            FileReader fileReader = new FileReader(file);
-            BufferedReader reader = new BufferedReader(fileReader);
+        try (FileReader fileReader = new FileReader(file); BufferedReader reader = new BufferedReader(fileReader)) {
             StringBuilder content = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
             }
-            reader.close();
-            fileReader.close();
 
-            if (tabbedPane.getComponentAt(0) instanceof TextPaneTab) {
-                if (tabbedPane.getTabCount() == 1 && ((TextPaneTab) tabbedPane.getComponentAt(0)).getTextPane().getText().equals("")) {
+            if (tabbedPane.getComponentAt(0) instanceof TextPaneTab && (tabbedPane.getTabCount() == 1 && ((TextPaneTab) tabbedPane.getComponentAt(0)).getTextPane().getText().equals(""))) {
                     tabbedPane.removeAll();
-                }
-
             }
 
             TextPaneTab newTab = new TextPaneTab(this);
@@ -344,7 +338,8 @@ public class FatPad extends JFrame {
 
     public void loadSettings() {
         System.out.println("loading");
-        try {
+        try(
+                BufferedReader br = new BufferedReader(new FileReader("./config/config.cfg"))){
             if (!Files.exists(Paths.get("./config/config.cfg"))) {
                 getRandomTheme();
                 return;
@@ -352,15 +347,13 @@ public class FatPad extends JFrame {
 
             ArrayList<String> lines = new ArrayList<>();
             String currentLine;
-            BufferedReader br = new BufferedReader(new FileReader("./config/config.cfg"));
             while ((currentLine = br.readLine()) != null) {
                 lines.add(currentLine);
             }
-            br.close();
 
             switch (lines.size()) {
                 case 6: {
-                    isUsingDefaultTextColor = Integer.parseInt(lines.get(5).split("=")[1]) == 1;
+                    setUsingDefaultTextColor(Integer.parseInt(lines.get(5).split("=")[1]) == 1);
                 }
                 case 5: {
                     currentTheme = Integer.parseInt(lines.get(4).split("=")[1]);
@@ -369,19 +362,51 @@ public class FatPad extends JFrame {
                     textColor = new Color(Integer.parseInt(lines.get(3).split("=")[1]));
                 }
                 case 3: {
-                    defaultFont = new Font(lines.get(0).split("=")[1],
+                    setDefaultFont(new Font(lines.get(0).split("=")[1],
                             Integer.parseInt(lines.get(1).split("=")[1]),
-                            Integer.parseInt(lines.get(2).split("=")[1]));
+                            Integer.parseInt(lines.get(2).split("=")[1])));
+                }
+                default:
+                {
+                    System.out.println("Empty config file");
                 }
             }
 
             getTheme(currentTheme);
-            settingsPanel = new Settings(this, tabbedPane); //so that the default color changes // fix this
-            changeTextColor(isUsingDefaultTextColor ? settingsPanel.getDefaultTextColor() : textColor);
-            changeFont(defaultFont);
+            settingsPanel = new Settings(this); //so that the default color changes // fix this
+            changeTextColor(isUsingDefaultTextColor() ? settingsPanel.getDefaultTextColor() : textColor);
+            changeFont(getDefaultFont());
 
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    public int getCurrentTheme() {
+        return currentTheme;
+    }
+
+    public Color getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(Color newColor) {
+        textColor = newColor;
+    }
+
+    public boolean isUsingDefaultTextColor() {
+        return isUsingDefaultTextColor;
+    }
+
+    public void setUsingDefaultTextColor(boolean usingDefaultTextColor) {
+        isUsingDefaultTextColor = usingDefaultTextColor;
+    }
+
+    public Font getDefaultFont() {
+        return defaultFont;
+    }
+
+    public void setDefaultFont(Font defaultFont) {
+        this.defaultFont = defaultFont;
     }
 }

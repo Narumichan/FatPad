@@ -9,37 +9,32 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import javax.crypto.Cipher;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
-import java.security.Security;
 import java.util.Base64;
 
 public class AutoUpdater {
 
     private static Integer latestVersion = -1;
-    private String repoOwner = "Narumichan";
-    private String repo = "FatPad";
-    private String pathToFile = "latestVersion.txt";
-    private String url = "https://api.github.com/repos/" + repoOwner + "/" + repo + "/contents/" + pathToFile;
-    private OkHttpClient client;
-    private Gson gson;
-    private final String updatePageUrl = "https://github.com/Narumichan/FatPad/releases";
+    private static final String REPOOWNER = "Narumichan";
+    private static final String REPONAME = "FatPad";
+    private static final String PATHTOFILE = "latestVersion.txt";
+    private static final String URL = "https://api.github.com/REPONAMEs/" + REPOOWNER + "/" + REPONAME + "/contents/" + PATHTOFILE;
+    private static final OkHttpClient client = new OkHttpClient();
+    private static final Gson gson = new Gson();
+    private static final String UPDATEPAGEURL = "https://github.com/Narumichan/FatPad/releases";
 
     public AutoUpdater() {
-        System.out.println(url);
+        System.out.println(URL);
 
         requestVersion();
-        //needToUpdate();
 
     }
 
-    public void requestVersion() {
+    public static void requestVersion() {
         System.out.println("Requesting version...");
-        Request request = new Request.Builder().url(url).build();
-        client = new OkHttpClient();
-        gson = new Gson();
+        Request request = new Request.Builder().url(URL).build();
 
         try {
             Response response = client.newCall(request).execute();
@@ -63,9 +58,9 @@ public class AutoUpdater {
     }
 
     public boolean needToUpdate() {
-        System.out.println("Latest Version: " + latestVersion + "  Local Version: " + FatPad.version);
+        System.out.println("Latest Version: " + latestVersion + "  Local Version: " + FatPad.VERSION);
 
-        if (latestVersion > FatPad.version) {
+        if (latestVersion > FatPad.VERSION) {
             System.out.println("Update Available!");
             return true;
         }
@@ -80,7 +75,7 @@ public class AutoUpdater {
     public void openUpdatePage()
     {
         try {
-            URI pageUri = new URI(updatePageUrl);
+            URI pageUri = new URI(UPDATEPAGEURL);
 
             if (Desktop.isDesktopSupported()) {
                 Desktop desktop = Desktop.getDesktop();

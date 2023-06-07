@@ -23,10 +23,10 @@ public class TextPaneTab extends JScrollPane implements Tab {
     private String title;
     private File targetFile;
 
-    private final int fontSizeMin = 11;
-    private final int fontSizeMax = 70;
+    private static final int FONTSIZEMIN = 11;
+    private static final int FONTSIZEMAX = 70;
     private boolean saved;
-    private final JTextPane textPane;
+    private JTextPane textPane;
     private final UndoManager undoManager = new UndoManager();
     public final Action undoText = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
@@ -57,13 +57,13 @@ public class TextPaneTab extends JScrollPane implements Tab {
         }
     };
     private int fontSize = 14;
-    private final int zoomSize = 5;
+    private static final int ZOOMSIZE = 5;
 
     public TextPaneTab(FatPad newOwner) {
         owner = newOwner;
         textPane = setupTextPane();
         updateTitle();
-        textPane.setFont(owner.defaultFont);
+        textPane.setFont(owner.getDefaultFont());
         textPane.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -73,23 +73,20 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                updateLineNumbers();
-                updateTitle();
+                insertUpdate(e);
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                updateLineNumbers();
-                updateTitle();
+                insertUpdate(e);
             }
         });
 
         lineNumberArea.setEditable(false);
         lineNumberArea.setFocusable(false);
-        lineNumberArea.setFont(owner.defaultFont);
+        lineNumberArea.setFont(owner.getDefaultFont());
 
         setupScrollPane();
-        //setRowHeaderView(lineNumberArea);
     }
 
     private void updateLineNumbers() {
@@ -99,16 +96,6 @@ public class TextPaneTab extends JScrollPane implements Tab {
             sb.append(i).append("\n");
         }
         lineNumberArea.setText(sb.toString());
-        //lineNumberArea.setMargin(new Insets(0, 0, 0, 10));
-    }
-
-    private int getLineHeight() {
-        FontMetrics fontMetrics = textPane.getFontMetrics(textPane.getFont());
-        return fontMetrics.getHeight();
-    }
-
-    public String getText() {
-        return textPane.getText();
     }
 
     public void setText(String text) {
@@ -118,14 +105,6 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public JTextPane getTextPane() {
         return textPane;
-    }
-
-    public JTextArea getLineArea() {
-        return lineNumberArea;
-    }
-
-    public File getTargetFile() {
-        return targetFile;
     }
 
     public void setTargetFile(File newTargetFile) {
@@ -151,8 +130,8 @@ public class TextPaneTab extends JScrollPane implements Tab {
     }
 
     private JTextPane setupTextPane() {
-        JTextPane textPane = new JTextPane();
-        textPane.setFont(owner.defaultFont);
+        textPane = new JTextPane();
+        textPane.setFont(owner.getDefaultFont());
         textPane.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
         textPane.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "Redo");
         textPane.getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "Save");
@@ -172,13 +151,13 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
                 if (e.getWheelRotation() < 0) //Mouse up (???)
                 {
-                    changeFontSize(zoomSize);
+                    changeFontSize(ZOOMSIZE);
                 } else //Mouse down
                 {
-                    changeFontSize(-zoomSize);
+                    changeFontSize(-ZOOMSIZE);
                 }
-                textPane.setFont(owner.defaultFont.deriveFont((float) fontSize));
-                lineNumberArea.setFont(owner.defaultFont.deriveFont((float) fontSize));
+                textPane.setFont(owner.getDefaultFont().deriveFont((float) fontSize));
+                lineNumberArea.setFont(owner.getDefaultFont().deriveFont((float) fontSize));
             }
         });
         new DropTarget(textPane, new DragDropListener(this));
@@ -200,11 +179,10 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public void changeFontSize(int modifier) {
         fontSize += modifier;
-        if (fontSize < fontSizeMin)
-            fontSize = fontSizeMin;
-        if (fontSize > fontSizeMax)
-            fontSize = fontSizeMax;
-        //System.out.println(fontSize);
+        if (fontSize < FONTSIZEMIN)
+            fontSize = FONTSIZEMIN;
+        if (fontSize > FONTSIZEMAX)
+            fontSize = FONTSIZEMAX;
     }
 
     @Override
@@ -231,7 +209,7 @@ public class TextPaneTab extends JScrollPane implements Tab {
                 removeTab();
             }
             break;
-            case JOptionPane.CANCEL_OPTION: {
+            default: {
                 return -1;
             }
         }
@@ -253,13 +231,12 @@ public class TextPaneTab extends JScrollPane implements Tab {
             return;
         }
 
-        try {
+        try (FileWriter fileWriter = new FileWriter(targetFile)) {
             System.out.println(targetFile.getAbsolutePath());
 
-            FileWriter fileWriter = new FileWriter(targetFile);
+
             String temp = textPane.getText();
             fileWriter.write(temp);
-            fileWriter.close();
 
             setSaved(true);
             updateTitle();
@@ -281,11 +258,9 @@ public class TextPaneTab extends JScrollPane implements Tab {
             File selectedFile = fileChooser.getSelectedFile();
             if (!Pattern.matches(".*\\..+", selectedFile.getName()))
                 selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
-            try {
-                FileWriter fileWriter = new FileWriter(selectedFile);
+            try (FileWriter fileWriter = new FileWriter(selectedFile)) {
                 String temp = textPane.getText();
                 fileWriter.write(temp);
-                fileWriter.close();
 
                 setSaved(true);
                 System.out.println(selectedFile.getAbsolutePath());
@@ -333,7 +308,6 @@ public class TextPaneTab extends JScrollPane implements Tab {
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == '\u0013' || e.getKeyChar() == '\u001A' || e.getKeyChar() == '\u0019') //CTRL+S napise \u0013 character pa stavi da je unsaved i sve iako je upravo saved bilo 001A
                     return;
-                //colorize();
                 setSaved(false);
 
                 if (e.getKeyChar() == '\t') {

@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 
 public class InfoPanel extends JPanel {
-    private FatPad owner;
 
     private Font defaultFont = new Font("Consoles", Font.BOLD, 14);
     private final JPanel updatePanel = new JPanel();
@@ -14,8 +13,7 @@ public class InfoPanel extends JPanel {
     private final JButton updateButton = new JButton();
     private AutoUpdater updater = new AutoUpdater();
 
-    public InfoPanel(FatPad newOwner) {
-        owner = newOwner;
+    public InfoPanel() {
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         setPreferredSize(new Dimension(300, 55));
@@ -27,7 +25,7 @@ public class InfoPanel extends JPanel {
         updatePanel.setMinimumSize(new Dimension(300, 55));
         updatePanel.setMaximumSize(new Dimension(300, 55));
 
-        updateLabel.setText(Utils.getVersionString(FatPad.version));
+        updateLabel.setText(Utils.getVersionString(FatPad.VERSION));
         updateLabel.setPreferredSize(new Dimension(60, 55));
         updateLabel.setMinimumSize(new Dimension(60, 55));
         updateLabel.setMaximumSize(new Dimension(60, 55));

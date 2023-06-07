@@ -29,7 +29,7 @@ public class Settings extends JScrollPane implements Tab {
             "Solarized Dark",
             "Gradianto Dark Fuchsia"
     };
-    public static int numberOfThemes = themes.length;
+    public static final int NUMBEROFTHEMES = themes.length;
     private static final String[] themeTooltips = {
             "https://github.com/JFormDesigner/FlatLaf"
             , "https://github.com/4lex4/intellij-platform-solarized"
@@ -57,7 +57,7 @@ public class Settings extends JScrollPane implements Tab {
     private final JLabel textColorLabel = new JLabel();
     private final JLabel enableDragLabel = new JLabel("Allow text dragging");
     private final JLabel themeLabel = new JLabel("Theme: ");
-    private final JComboBox themeComboBox = new JComboBox(themes);
+    private final JComboBox<String> themeComboBox = new JComboBox<>(themes);
     private final ComboboxToolTipRenderer renderer = new ComboboxToolTipRenderer();
     private final JPanel buttonsPanel = new JPanel();
     private final JPanel enableDragPanel = new JPanel();
@@ -73,23 +73,21 @@ public class Settings extends JScrollPane implements Tab {
     private Color newColor;
 
     private final FatPad owner;
-    private final JTabbedPane tabbedPaneOwner;
-    private final String title = "< Settings >";
+    private static final String TITLE = "< Settings >";
     private boolean saved = true;
 
-    public Settings(FatPad newOwner, JTabbedPane newTabbedPaneOwner) {
+    public Settings(FatPad newOwner) {
         owner = newOwner;
-        tabbedPaneOwner = newTabbedPaneOwner;
         thiss = this;
         settingsPanel.setLayout(new GridLayout(9, 1, 5, 5));
 
-        newFont = owner.defaultFont;
+        newFont = owner.getDefaultFont();
         newColor = textFontLabel.getForeground();
         System.out.println("Color is: " + textFontLabel.getForeground());
 
         textFontPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
-        textFontLabel.setText(owner.defaultFont.getFamily() + " " + owner.defaultFont.getSize() + "px");
+        textFontLabel.setText(owner.getDefaultFont().getFamily() + " " + owner.getDefaultFont().getSize() + "px");
         textFontLabel.setFont(settingsFont.deriveFont(22F));
 
         fontButton.setFont(settingsFont);
@@ -114,7 +112,7 @@ public class Settings extends JScrollPane implements Tab {
         textColorLabel.setPreferredSize(new Dimension(50, 50));
         textColorLabel.setOpaque(true);
         textColorLabel.setBorder(new LineBorder(Color.black, 1, false));
-        textColorLabel.setBackground(owner.isUsingDefaultTextColor ? newColor : owner.textColor);
+        textColorLabel.setBackground(owner.isUsingDefaultTextColor() ? newColor : owner.getTextColor());
 
         textColorButton.setFont(settingsFont);
         textColorButton.setPreferredSize(new Dimension(200, 60));
@@ -128,16 +126,16 @@ public class Settings extends JScrollPane implements Tab {
             thiss.setSaved(false);
         });
 
-        textDefaultCheckBox.setSelected(owner.isUsingDefaultTextColor);
+        textDefaultCheckBox.setSelected(owner.isUsingDefaultTextColor());
         textDefaultCheckBox.addItemListener(e -> {
             if (e.getStateChange() == 1) //Selected
             {
                 newColor = textFontLabel.getForeground();
                 textColorLabel.setBackground(newColor);
-                owner.isUsingDefaultTextColor = true;
+                owner.setUsingDefaultTextColor(true);
                 thiss.setSaved(false);
             } else {
-                owner.isUsingDefaultTextColor = false;
+                owner.setUsingDefaultTextColor(false);
                 thiss.setSaved(false);
 
             }
@@ -158,7 +156,7 @@ public class Settings extends JScrollPane implements Tab {
 
         themeComboBox.setRenderer(renderer);
         themeComboBox.setFont(settingsFont);
-        themeComboBox.setSelectedIndex(owner.currentTheme - 1);
+        themeComboBox.setSelectedIndex(owner.getCurrentTheme() - 1);
         renderer.setTooltips(Arrays.asList(themeTooltips));
         themeComboBox.addActionListener(e -> {
             newTheme = themeComboBox.getSelectedIndex() + 1;
@@ -173,8 +171,8 @@ public class Settings extends JScrollPane implements Tab {
         enableDragLabel.setFont(settingsFont);
 
         enableDragCheckBox.setPreferredSize(new Dimension(30, 30));
-        enableDragCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
-        enableDragCheckBox.setVerticalAlignment(JCheckBox.CENTER);
+        enableDragCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+        enableDragCheckBox.setVerticalAlignment(SwingConstants.CENTER);
 
         enableDragPanel.add(enableDragCheckBox);
         enableDragPanel.add(enableDragLabel);
@@ -183,7 +181,7 @@ public class Settings extends JScrollPane implements Tab {
 
         tabSizeLabel.setFont(settingsFont);
         tabSizeLabel.setPreferredSize(new Dimension(125, 50));
-        tabSizeLabel.setVerticalAlignment(JLabel.CENTER);
+        tabSizeLabel.setVerticalAlignment(SwingConstants.CENTER);
 
         tabSizeSlider.setPreferredSize(new Dimension(250, 50));
         tabSizeSlider.setMajorTickSpacing(20);
@@ -211,7 +209,6 @@ public class Settings extends JScrollPane implements Tab {
         innerButtonsPanel.setPreferredSize(new Dimension(305, 44));
         innerButtonsPanel.setMinimumSize(new Dimension(305, 44));
         innerButtonsPanel.add(applyButton, BorderLayout.WEST);
-        //innerButtonsPanel.add(cancelButton, BorderLayout.EAST);
 
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.CTRL_DOWN_MASK), "Create a New Tab");
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK), "Close the current tab");
@@ -232,18 +229,16 @@ public class Settings extends JScrollPane implements Tab {
         settingsPanel.add(buttonsPanel);
 
         getViewport().setView(settingsPanel);
-
-        //setVisible(true);
     }
 
     public void applyOwnersSettings() {
         if (newFont != null) {
-            owner.defaultFont = newFont;
+            owner.setDefaultFont(newFont);
             owner.changeFont(newFont);
         }
         if (newColor != null) {
-            newColor = textDefaultCheckBox.isSelected()? textFontLabel.getForeground() : textColorLabel.getBackground();
-            owner.textColor = newColor;
+            newColor = textDefaultCheckBox.isSelected() ? textFontLabel.getForeground() : textColorLabel.getBackground();
+            owner.setTextColor(newColor);
             owner.changeTextColor(newColor);
             System.out.println("Default color is: " + textFontLabel.getForeground().toString());
         }
@@ -253,7 +248,7 @@ public class Settings extends JScrollPane implements Tab {
             owner.getRandomTheme();
         }
 
-        owner.isUsingDefaultTextColor = textDefaultCheckBox.isSelected();
+        owner.setUsingDefaultTextColor(textDefaultCheckBox.isSelected());
 
         thiss.setSaved(true);
 
@@ -261,15 +256,15 @@ public class Settings extends JScrollPane implements Tab {
 
     private ArrayList<String> getLinesToSave() {
         if (newFont == null) {
-            newFont = owner.defaultFont;
+            newFont = owner.getDefaultFont();
         }
         if (newColor == null) {
-            newColor = owner.textColor;
+            newColor = owner.getTextColor();
         }
         if (newTheme == 0) {
-            newTheme = owner.currentTheme;
+            newTheme = owner.getCurrentTheme();
         }
-        owner.isUsingDefaultTextColor = textDefaultCheckBox.isSelected();
+        owner.setUsingDefaultTextColor(textDefaultCheckBox.isSelected());
 
         System.out.println("saving");
 
@@ -285,17 +280,17 @@ public class Settings extends JScrollPane implements Tab {
 
     public void resetSettings() {
         newFont = null;
-        newTheme = owner.currentTheme;
-        textDefaultCheckBox.setSelected(owner.isUsingDefaultTextColor);
-        textFontLabel.setText(owner.defaultFont.getFontName() + " " + owner.defaultFont.getSize() + "px");
-        newColor = textDefaultCheckBox.isSelected() ? textFontLabel.getForeground() : owner.textColor;
+        newTheme = owner.getCurrentTheme();
+        textDefaultCheckBox.setSelected(owner.isUsingDefaultTextColor());
+        textFontLabel.setText(owner.getDefaultFont().getFontName() + " " + owner.getDefaultFont().getSize() + "px");
+        newColor = textDefaultCheckBox.isSelected() ? textFontLabel.getForeground() : owner.getTextColor();
         textColorLabel.setBackground(newColor);
         tabSizeLabel.setText("Tab Size: " + tabSizeSlider.getValue());
-        themeComboBox.setSelectedIndex(owner.currentTheme - 1);
+        themeComboBox.setSelectedIndex(owner.getCurrentTheme() - 1);
     }
 
     public String getTitle() {
-        return title;
+        return TITLE;
     }
 
     @Override
@@ -321,7 +316,6 @@ public class Settings extends JScrollPane implements Tab {
             case JOptionPane.YES_OPTION: {
                 applyOwnersSettings();
                 saveFile();
-                //removeTab();
             }
             break;
             case JOptionPane.NO_OPTION: {
@@ -329,7 +323,7 @@ public class Settings extends JScrollPane implements Tab {
                 removeTab();
             }
             break;
-            case JOptionPane.CANCEL_OPTION: {
+            default: {
                 return -1;
             }
         }
@@ -345,14 +339,12 @@ public class Settings extends JScrollPane implements Tab {
 
     @Override
     public void saveFile() {
-        try {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("./config/config.cfg"))) {
             Files.createDirectories(Paths.get("./config/"));
             ArrayList<String> linesToSave = getLinesToSave();
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./config/config.cfg"));
             for (String line : linesToSave) {
                 bw.write(line + "\n");
             }
-            bw.close();
         } catch (Exception e) {
             System.out.println(e);
         }

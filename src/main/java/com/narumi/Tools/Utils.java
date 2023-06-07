@@ -1,6 +1,7 @@
 package com.narumi.Tools;
 
 public class Utils {
+    private Utils(){}
     public static String getVersionString(int xyz) {
         int z = xyz % 10;
         int y = (xyz / 10) % 10;

@@ -5,18 +5,17 @@ import com.narumi.Tools.TextPaneTab;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class Menu extends JMenuBar {
-    public FatPad owner;
+    private FatPad owner;
 
     public Menu(FatPad newOwner) {
-        owner = newOwner;
+        setOwner(newOwner);
         JMenu file = new JMenu("File");
         JMenu edit = new JMenu("Edit");
         JMenu theme = new JMenu("Theme");
 
-        setFont(owner.defaultFont.deriveFont(14F));
+        setFont(getOwner().getDefaultFont().deriveFont(14F));
 
         JMenuItem newFile = new JMenuItem("New File");
         JMenuItem newWindow = new JMenuItem("New Window");
@@ -27,43 +26,38 @@ public class Menu extends JMenuBar {
         JMenuItem settings = new JMenuItem("Settings");
         JMenuItem randomizeTheme = new JMenuItem("Randomize Theme");
 
-        newFile.addActionListener(e -> owner.createNewTab());
+        newFile.addActionListener(e -> getOwner().addNewTab());
 
         newWindow.addActionListener(e -> EventQueue.invokeLater(FatPad::new));
 
-        open.addActionListener(e -> owner.chooseFile());
+        open.addActionListener(e -> getOwner().chooseFile());
 
-        save.addActionListener(e -> owner.saveFile());
+        save.addActionListener(e -> getOwner().saveFile());
 
-        saveAs.addActionListener(e -> owner.saveFileAs());
+        saveAs.addActionListener(e -> getOwner().saveFileAs());
 
 
-        exit.addActionListener(e -> owner.dispose());
+        exit.addActionListener(e -> getOwner().dispose());
 
 
         JMenuItem undo = new JMenuItem("Undo");
         JMenuItem redo = new JMenuItem("Redo");
 
-        undo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!(owner.tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
-                ((TextPaneTab) owner.tabbedPane.getSelectedComponent()).undoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-            }
-        });
-
-        redo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!(owner.tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
-                ((TextPaneTab) owner.tabbedPane.getSelectedComponent()).redoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-            }
+        undo.addActionListener(e -> {
+            if (!(getOwner().tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
+            ((TextPaneTab) getOwner().tabbedPane.getSelectedComponent()).undoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
         });
 
 
-        settings.addActionListener(e -> owner.createSettingsTab());
 
-        randomizeTheme.addActionListener(e -> owner.getRandomTheme());
+        redo.addActionListener(e -> {
+            if (!(getOwner().tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
+            ((TextPaneTab) getOwner().tabbedPane.getSelectedComponent()).redoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+        });
+
+        settings.addActionListener(e -> getOwner().createSettingsTab());
+
+        randomizeTheme.addActionListener(e -> getOwner().getRandomTheme());
 
         file.add(newFile);
         file.add(open);
@@ -86,12 +80,19 @@ public class Menu extends JMenuBar {
         add(theme);
 
         for (Component i : getComponents()) {
-            i.setFont(owner.defaultFont);
+            i.setFont(getOwner().getDefaultFont());
             for (Component j : ((JMenuItem) i).getComponents()) {
-                j.setFont(owner.defaultFont);
+                j.setFont(getOwner().getDefaultFont());
             }
         }
 
     }
 
+    public FatPad getOwner() {
+        return owner;
+    }
+
+    public void setOwner(FatPad owner) {
+        this.owner = owner;
+    }
 }
