@@ -2,6 +2,11 @@
 
 FatPad is a more robust and aesthetically pleasing alternative to Notepad.
 
+
+It's intended to be used as a simple, easy on the eyes, and intuitive editor for your day-to-day text file needs.
+
+It's *NOT* intended to be used as a replacement for your code editor of choice although there's nothing stopping you from using it as such.
+
 ## Installation
 
 Download the latest release from [here](https://github.com/Narumichan/FatPad/releases)
