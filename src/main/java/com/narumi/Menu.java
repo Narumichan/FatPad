@@ -49,7 +49,6 @@ public class Menu extends JMenuBar {
         });
 
 
-
         redo.addActionListener(e -> {
             if (!(getOwner().tabbedPane.getSelectedComponent() instanceof TextPaneTab)) return;
             ((TextPaneTab) getOwner().tabbedPane.getSelectedComponent()).redoText.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));

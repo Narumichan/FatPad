@@ -8,13 +8,21 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.event.*;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class TextPaneTab extends JScrollPane implements Tab {
@@ -22,6 +30,9 @@ public class TextPaneTab extends JScrollPane implements Tab {
     private FatPad owner;
     private String title;
     private File targetFile;
+    private File targetColorFile;
+
+    private boolean usingColors = false;
 
     private static final int FONTSIZEMIN = 11;
     private static final int FONTSIZEMAX = 70;
@@ -109,6 +120,8 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public void setTargetFile(File newTargetFile) {
         targetFile = newTargetFile;
+        targetColorFile = new File("./config/styles/" + newTargetFile.getName().split("\\.")[0] + ".colors");
+
     }
 
     public boolean isSaved() {
@@ -230,8 +243,8 @@ public class TextPaneTab extends JScrollPane implements Tab {
             saveFileAs();
             return;
         }
-
-        try (FileWriter fileWriter = new FileWriter(targetFile)) {
+        //2 try blocks because even if the color writing fails, I'd rather try and write the text anyway because it's more important
+        try (BufferedWriter fileWriter = new BufferedWriter(new FileWriter(targetFile))) {
             System.out.println(targetFile.getAbsolutePath());
 
 
@@ -240,10 +253,75 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
             setSaved(true);
             updateTitle();
+
+            System.out.println(targetColorFile.getParent());
+            if (!Files.exists(Paths.get(targetColorFile.getParent())))
+                Files.createDirectories(Paths.get(targetColorFile.getParent()));
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error while saving the file", "Error", JOptionPane.ERROR_MESSAGE);
         }
+
+        if (!usingColors) return;
+
+        writeColorsFile();
+    }
+
+    private void writeColorsFile() {
+        try (BufferedWriter colorsWriter = new BufferedWriter(new FileWriter(targetColorFile))) {
+            System.out.println(targetColorFile.getAbsolutePath());
+            StyledDocument doc = textPane.getStyledDocument();
+            int length = doc.getLength();
+
+            ArrayList<Color> usedColors = getUsedColors(doc);
+
+            for (Color color : usedColors) {
+                StringBuilder lineBuilder = new StringBuilder();
+                lineBuilder.append(Utils.toHexString(color)).append(">");
+
+                boolean inSegment = false;
+                int segmentStart = 0;
+
+                for (int i = 0; i < length; i++) {
+                    Element element = doc.getCharacterElement(i);
+                    AttributeSet attributes = element.getAttributes();
+                    Color foreground = StyleConstants.getForeground(attributes);
+
+                    if (foreground.equals(color)) {
+                        if (!inSegment) {
+                            segmentStart = i;
+                            inSegment = true;
+                        }
+                    } else if (inSegment) {
+                        lineBuilder.append(segmentStart).append(",").append(i - 1).append("|");
+                        inSegment = false;
+                    }
+                }
+                //if the last character was in a segment
+                if (inSegment) {
+                    lineBuilder.append(segmentStart).append(",").append(length - 1).append("|");
+                }
+
+                colorsWriter.write(lineBuilder.toString());
+                colorsWriter.newLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error while saving the file", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private ArrayList<Color> getUsedColors(StyledDocument doc) {
+        int length = doc.getLength();
+        ArrayList<Color> usedColors = new ArrayList<>();
+        for (int i = 0; i < length; i++) {
+            Element element = doc.getCharacterElement(i);
+            AttributeSet attributes = element.getAttributes();
+            Color foreground = StyleConstants.getForeground(attributes);
+            if (!usedColors.contains(foreground)) usedColors.add(foreground);
+        }
+        return usedColors;
     }
 
     @Override
@@ -254,25 +332,31 @@ public class TextPaneTab extends JScrollPane implements Tab {
         fileChooser.setCurrentDirectory(FileSystemView.getFileSystemView().getHomeDirectory());
         int result = fileChooser.showSaveDialog(this);
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            if (!Pattern.matches(".*\\..+", selectedFile.getName()))
-                selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
-            try (FileWriter fileWriter = new FileWriter(selectedFile)) {
-                String temp = textPane.getText();
-                fileWriter.write(temp);
+        if (result != JFileChooser.APPROVE_OPTION) return;
 
-                setSaved(true);
-                System.out.println(selectedFile.getAbsolutePath());
+        File selectedFile = fileChooser.getSelectedFile();
+        if (!Pattern.matches(".*\\..+", selectedFile.getName()))
+            selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
+        try (FileWriter fileWriter = new FileWriter(selectedFile)) {
+            String temp = textPane.getText();
+            fileWriter.write(temp);
 
-                setTargetFile(selectedFile);
-                updateTitle();
-            } catch (IOException e) {
+            setSaved(true);
+            System.out.println(selectedFile.getAbsolutePath());
 
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error while saving the file", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            setTargetFile(selectedFile);
+            updateTitle();
+
+            if (!Files.exists(Paths.get(targetColorFile.getParent())))
+                Files.createDirectories(Paths.get(targetColorFile.getParent()));
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error while saving the file", "Error", JOptionPane.ERROR_MESSAGE);
         }
+
+        writeColorsFile();
     }
 
     @Override
@@ -328,5 +412,13 @@ public class TextPaneTab extends JScrollPane implements Tab {
 
     public FatPad getOwner() {
         return owner;
+    }
+
+    public boolean isUsingColors() {
+        return usingColors;
+    }
+
+    public void setUsingColors(boolean usingColors) {
+        this.usingColors = usingColors;
     }
 }

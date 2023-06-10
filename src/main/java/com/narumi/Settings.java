@@ -83,7 +83,6 @@ public class Settings extends JScrollPane implements Tab {
 
         newFont = owner.getDefaultFont();
         newColor = textFontLabel.getForeground();
-        System.out.println("Color is: " + textFontLabel.getForeground());
 
         textFontPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
 
@@ -240,7 +239,6 @@ public class Settings extends JScrollPane implements Tab {
             newColor = textDefaultCheckBox.isSelected() ? textFontLabel.getForeground() : textColorLabel.getBackground();
             owner.setTextColor(newColor);
             owner.changeTextColor(newColor);
-            System.out.println("Default color is: " + textFontLabel.getForeground().toString());
         }
         if (themeComboBox.getSelectedIndex() != 0) {
             owner.getTheme(themeComboBox.getSelectedIndex() + 1);
@@ -264,9 +262,12 @@ public class Settings extends JScrollPane implements Tab {
         if (newTheme == 0) {
             newTheme = owner.getCurrentTheme();
         }
+
         owner.setUsingDefaultTextColor(textDefaultCheckBox.isSelected());
 
-        System.out.println("saving");
+        System.out.println("Saving settings");
+
+        int[] selectedColorRGBArray = owner.getInfoPanel().getSelectedColors();
 
         ArrayList<String> linesToSave = new ArrayList<>();
         linesToSave.add("Font=" + newFont.getFamily());
@@ -275,6 +276,12 @@ public class Settings extends JScrollPane implements Tab {
         linesToSave.add("Color=" + newColor.getRGB());
         linesToSave.add("Theme=" + newTheme);
         linesToSave.add("UseDefaultTextColor=" + (textDefaultCheckBox.isSelected() ? "1" : "0"));
+        linesToSave.add("SelectedColors=" +
+                selectedColorRGBArray[0] + "=" +
+                selectedColorRGBArray[1] + "=" +
+                selectedColorRGBArray[2] + "=" +
+                selectedColorRGBArray[3]);
+
         return linesToSave;
     }
 
@@ -346,7 +353,7 @@ public class Settings extends JScrollPane implements Tab {
                 bw.write(line + "\n");
             }
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 
@@ -373,7 +380,6 @@ public class Settings extends JScrollPane implements Tab {
     }
 
     public Color getDefaultTextColor() {
-        System.out.println("Default color is: " + textFontLabel.getForeground().toString());
         return textFontLabel.getForeground();
     }
 }

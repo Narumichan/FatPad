@@ -29,7 +29,6 @@ package com.narumi;
  */
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.intellijthemes.*;
@@ -42,6 +41,9 @@ import com.narumi.Tools.TextPaneTab;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -58,12 +60,13 @@ import java.util.Random;
 
 public class FatPad extends JFrame {
 
-    public static final int VERSION = 210;
+    public static final int VERSION = 211;
     public final JTabbedPane tabbedPane = new JTabbedPane();
     private int currentTheme;
     private Color textColor = new Color(240, 240, 240);
     private boolean isUsingDefaultTextColor = true;
     private int fontSize = 15;
+    private Color[] selectedColors = {Color.white, Color.white, Color.white, Color.white};
     private Font defaultFont = new Font("Consoles", Font.PLAIN, fontSize);
     public final Action closeCurrentTab = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
@@ -77,7 +80,6 @@ public class FatPad extends JFrame {
     };
     private Settings settingsPanel; //initialize after theme changes
     private final Random random = new Random();
-
     private InfoPanel infoPanel;
 
     public FatPad() {
@@ -125,14 +127,14 @@ public class FatPad extends JFrame {
 
 
         settingsPanel = new Settings(this);
-        infoPanel = new InfoPanel();
+        infoPanel = new InfoPanel(this);
 
         add(tabbedPane, BorderLayout.CENTER);
         add(infoPanel, BorderLayout.SOUTH);
 
 
-        loadSettings();
         addNewTab();
+        loadSettings();
 
         changeFont(getDefaultFont());
 
@@ -151,8 +153,6 @@ public class FatPad extends JFrame {
                     } else {
                         closeTab(tabIndex);
                     }
-
-
                 }
             }
         });
@@ -208,7 +208,7 @@ public class FatPad extends JFrame {
     }
 
     public void getTheme(int themeNumber) {
-        System.out.println("Theme " + themeNumber);
+        System.out.println("Setting up theme " + themeNumber);
         currentTheme = themeNumber;
         switch (themeNumber) {
             case 0: {
@@ -267,9 +267,13 @@ public class FatPad extends JFrame {
             break;
             case 4:
             default: {
-                FlatDarkLaf.setup();
+                FlatCarbonIJTheme.setup();
                 FlatLaf.updateUI();
             }
+        }
+        if (isUsingDefaultTextColor) {
+            textColor = tabbedPane.getSelectedComponent().getForeground();
+            infoPanel.resetColorLabels();
         }
     }
 
@@ -292,16 +296,50 @@ public class FatPad extends JFrame {
             }
 
             if (tabbedPane.getComponentAt(0) instanceof TextPaneTab && (tabbedPane.getTabCount() == 1 && ((TextPaneTab) tabbedPane.getComponentAt(0)).getTextPane().getText().equals(""))) {
-                    tabbedPane.removeAll();
+                tabbedPane.removeAll();
             }
 
             TextPaneTab newTab = new TextPaneTab(this);
             tabbedPane.addTab(newTab.getTitle(), newTab);
             newTab.setSaved(true);
+            newTab.setUsingColors(false);
             newTab.setTitle(file.getName());
             newTab.setTargetFile(file);
             newTab.setText(content.toString());
             tabbedPane.setSelectedComponent(newTab);
+
+            File colorsFile = new File("./config/styles/" + file.getName().split("\\.")[0] + ".colors");
+            if (Files.exists(colorsFile.toPath())) {
+                readColorsFile(colorsFile, newTab);
+                newTab.setUsingColors(true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error while opening the file", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    private void readColorsFile(File colorsFile, TextPaneTab newTab) {
+        try (FileReader fileReader = new FileReader(colorsFile); BufferedReader reader = new BufferedReader(fileReader)) {
+            StyledDocument doc = newTab.getTextPane().getStyledDocument();
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] colorAndSegments = line.split(">");
+                if (colorAndSegments.length < 2) return;
+
+                Color color = Color.decode(colorAndSegments[0]);
+
+                String[] segments = colorAndSegments[1].split("\\|");
+
+                for (String segment : segments) {
+                    int start = Integer.parseInt(segment.split(",")[0]);
+                    int end = Integer.parseInt(segment.split(",")[1]);
+
+                    Style newStyle = newTab.getTextPane().addStyle("custom", null);
+                    StyleConstants.setForeground(newStyle, color);
+                    doc.setCharacterAttributes(start, end - start + 1, newStyle, true);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error while opening the file", "Error", JOptionPane.ERROR_MESSAGE);
@@ -337,14 +375,14 @@ public class FatPad extends JFrame {
     }
 
     public void loadSettings() {
-        System.out.println("loading");
-        try(
-                BufferedReader br = new BufferedReader(new FileReader("./config/config.cfg"))){
-            if (!Files.exists(Paths.get("./config/config.cfg"))) {
-                getRandomTheme();
-                return;
-            }
+        System.out.println("Loading Settings");
 
+        if (!Files.exists(Paths.get("./config/config.cfg"))) {
+            getRandomTheme();
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader("./config/config.cfg"))) {
             ArrayList<String> lines = new ArrayList<>();
             String currentLine;
             while ((currentLine = br.readLine()) != null) {
@@ -352,6 +390,14 @@ public class FatPad extends JFrame {
             }
 
             switch (lines.size()) {
+                case 7: {
+                    selectedColors[0] = new Color(Integer.parseInt(lines.get(6).split("=")[1]));
+                    selectedColors[1] = new Color(Integer.parseInt(lines.get(6).split("=")[2]));
+                    selectedColors[2] = new Color(Integer.parseInt(lines.get(6).split("=")[3]));
+                    selectedColors[3] = new Color(Integer.parseInt(lines.get(6).split("=")[4]));
+
+                    infoPanel.resetColorLabels();
+                }
                 case 6: {
                     setUsingDefaultTextColor(Integer.parseInt(lines.get(5).split("=")[1]) == 1);
                 }
@@ -365,10 +411,9 @@ public class FatPad extends JFrame {
                     setDefaultFont(new Font(lines.get(0).split("=")[1],
                             Integer.parseInt(lines.get(1).split("=")[1]),
                             Integer.parseInt(lines.get(2).split("=")[1])));
-                }
-                default:
-                {
-                    System.out.println("Empty config file");
+                }break;
+                default: {
+                    System.out.println("Config file has less than 3 lines");
                 }
             }
 
@@ -378,8 +423,12 @@ public class FatPad extends JFrame {
             changeFont(getDefaultFont());
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
+    }
+
+    public InfoPanel getInfoPanel() {
+        return infoPanel;
     }
 
     public int getCurrentTheme() {
@@ -408,5 +457,9 @@ public class FatPad extends JFrame {
 
     public void setDefaultFont(Font defaultFont) {
         this.defaultFont = defaultFont;
+    }
+
+    public Color[] getSelectedColors() {
+        return selectedColors;
     }
 }

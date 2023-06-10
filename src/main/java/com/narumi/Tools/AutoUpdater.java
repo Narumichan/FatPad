@@ -20,20 +20,18 @@ public class AutoUpdater {
     private static final String REPOOWNER = "Narumichan";
     private static final String REPONAME = "FatPad";
     private static final String PATHTOFILE = "latestVersion.txt";
-    private static final String URL = "https://api.github.com/REPONAMEs/" + REPOOWNER + "/" + REPONAME + "/contents/" + PATHTOFILE;
+    private static final String URL = "https://api.github.com/repos/" + REPOOWNER + "/" + REPONAME + "/contents/" + PATHTOFILE;
     private static final OkHttpClient client = new OkHttpClient();
     private static final Gson gson = new Gson();
     private static final String UPDATEPAGEURL = "https://github.com/Narumichan/FatPad/releases";
 
     public AutoUpdater() {
-        System.out.println(URL);
-
         requestVersion();
 
     }
 
     public static void requestVersion() {
-        System.out.println("Requesting version...");
+        System.out.println("Requesting version from " + URL);
         Request request = new Request.Builder().url(URL).build();
 
         try {
